@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-material-ui/material-ui.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+
+    <title>Burger not Bakery</title>
+
+</head>
+<body>
+<div class="container col-12 mt-5">
+    <div class="container d-flex justify-content-between">
+        <h1>Order a Burger</h1>
+        <button type="button" class="btn btn-success" id='Order'>Order Here!</button>
+    </div>
+
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">Timestamp</th>
+            <th scope="col">Index</th>
+            <th scope="col">Nonce</th>
+            <th scope="col">Previous Hash</th>
+            <th scope="col">Name</th>
+            <th scope="col">Burger</th>
+            <th scope="col">OrderAmount</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for block in data['chain'] %}
+        <tr>
+            <td>{{ block['timestamp'] }}</td>
+            <td>{{ block['index'] }}</td>
+            <td>{{ block['nonce'] }}</td>
+            <td>{{ block['previous_hash'][:4] }} ... {{ block['previous_hash'][-4:] }}</td>
+            <td>{{ block['data']['Name'] }}</td>
+            <td>{{ block['data']['Burger'] }}</td>
+            <td>{{ block['data']['OrderAmount'] }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+<script>
+    document.getElementById('Order').addEventListener('click', function () {
+        Swal.fire({
+            title: 'Order a Burger !',
+            width: 900,
+            padding: 30,
+            html: `<div class="mb-3">
+                        <label for="Name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="Name" name="Name" placeholder="Name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="Burger" class="form-label">Burger</label>
+                        <input type="text" class="form-control" id="Burger" name="Burger" placeholder="Burger">
+                    </div>
+                    <div class="mb-3">
+                        <label for="OrderAmount" class="form-label">OrderAmount</label>
+                        <input type="text" class="form-control" id="OrderAmount" name="OrderAmount" placeholder="OrderAmount">
+                    </div>`,
+            showCancelButton: true,
+            confirmButtonText: 'Order',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                const Name = Swal.getPopup().querySelector('#Name').value
+                const Burger = Swal.getPopup().querySelector('#Burger').value
+                const OrderAmount = Swal.getPopup().querySelector('#OrderAmount').value
+                if (!Name || !Burger || !OrderAmount) {
+                    Swal.showValidationMessage(`Please enter Name, Burger and OrderAmount`)
+                }
+                fetch('/mining_block',{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        Name: Name,
+                        Burger: Burger,
+                        OrderAmount: OrderAmount
+                    })
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText)
+                    } else {
+                        window.location.reload()
+                    }
+                })
+            }
+        })
+    })
+</script>
+</html>
